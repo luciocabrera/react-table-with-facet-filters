@@ -1,5 +1,5 @@
 import type { Route } from "./+types/home";
-import { Welcome } from "../welcome/welcome";
+import { redirect } from "react-router";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -8,6 +8,11 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
+export function loader() {
+  return redirect("/welcome");
+}
+
 export default function Home() {
-  return <Welcome />;
+  // This component shouldn't render due to the redirect
+  return null;
 }
