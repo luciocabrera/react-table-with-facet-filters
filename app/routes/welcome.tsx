@@ -17,6 +17,7 @@ const navigationItems = [
   { to: "/welcome/date-range", label: "Date Range" },
   { to: "/welcome/status", label: "Status" },
   { to: "/table", label: "Data Table" },
+  { to: "/auth-demo", label: "Auth Demo" },
 ];
 
 export default function Welcome() {

@@ -1,3 +1,6 @@
+import { api, AuthenticationError } from "./httpClient";
+import { AuthService, CookieManager } from "./auth";
+
 export interface Employee {
   id: number;
   name: string;
@@ -28,72 +31,208 @@ const departments = ["Engineering", "Marketing", "HR", "Sales", "Finance"];
 
 const rolesByDepartment: Record<string, string[]> = {
   Engineering: [
-    "Senior Developer", "Frontend Developer", "Backend Developer", "Full Stack Developer",
-    "DevOps Engineer", "QA Engineer", "Software Architect", "Tech Lead",
-    "Principal Engineer", "Engineering Manager", "Site Reliability Engineer",
-    "Mobile Developer", "Data Engineer", "Machine Learning Engineer", "Platform Engineer",
-    "Security Engineer", "Cloud Architect", "Staff Engineer", "Senior QA Engineer",
-    "Frontend Architect", "Backend Architect", "Database Administrator", "DevOps Lead",
-    "Technical Program Manager", "Software Development Manager", "Senior Software Engineer",
-    "Junior Developer", "Intern Developer", "Graduate Engineer", "Lead Developer",
-    "Principal Software Architect", "Director of Engineering", "VP of Engineering",
-    "CTO", "Chief Architect", "Software Engineer III", "Software Engineer II",
-    "Software Engineer I", "Senior Staff Engineer", "Distinguished Engineer"
+    "Senior Developer",
+    "Frontend Developer",
+    "Backend Developer",
+    "Full Stack Developer",
+    "DevOps Engineer",
+    "QA Engineer",
+    "Software Architect",
+    "Tech Lead",
+    "Principal Engineer",
+    "Engineering Manager",
+    "Site Reliability Engineer",
+    "Mobile Developer",
+    "Data Engineer",
+    "Machine Learning Engineer",
+    "Platform Engineer",
+    "Security Engineer",
+    "Cloud Architect",
+    "Staff Engineer",
+    "Senior QA Engineer",
+    "Frontend Architect",
+    "Backend Architect",
+    "Database Administrator",
+    "DevOps Lead",
+    "Technical Program Manager",
+    "Software Development Manager",
+    "Senior Software Engineer",
+    "Junior Developer",
+    "Intern Developer",
+    "Graduate Engineer",
+    "Lead Developer",
+    "Principal Software Architect",
+    "Director of Engineering",
+    "VP of Engineering",
+    "CTO",
+    "Chief Architect",
+    "Software Engineer III",
+    "Software Engineer II",
+    "Software Engineer I",
+    "Senior Staff Engineer",
+    "Distinguished Engineer",
   ],
   Marketing: [
-    "Marketing Manager", "Content Specialist", "Digital Marketing Specialist", "SEO Specialist",
-    "Social Media Manager", "Brand Manager", "Growth Marketing Manager", "Marketing Analyst",
-    "Campaign Manager", "Product Marketing Manager", "Content Marketing Manager",
-    "Email Marketing Specialist", "Performance Marketing Manager", "Marketing Director",
-    "VP of Marketing", "CMO", "Marketing Coordinator", "Marketing Associate",
-    "Brand Strategist", "Creative Director", "Copywriter", "Graphic Designer",
-    "Video Producer", "Marketing Operations Manager", "Field Marketing Manager",
-    "Partner Marketing Manager", "Demand Generation Manager", "Marketing Automation Specialist",
-    "Customer Marketing Manager", "Event Marketing Manager", "PR Manager",
-    "Communications Manager", "Influencer Marketing Manager", "Affiliate Marketing Manager",
-    "Marketing Data Analyst", "Marketing Research Manager", "Brand Ambassador"
+    "Marketing Manager",
+    "Content Specialist",
+    "Digital Marketing Specialist",
+    "SEO Specialist",
+    "Social Media Manager",
+    "Brand Manager",
+    "Growth Marketing Manager",
+    "Marketing Analyst",
+    "Campaign Manager",
+    "Product Marketing Manager",
+    "Content Marketing Manager",
+    "Email Marketing Specialist",
+    "Performance Marketing Manager",
+    "Marketing Director",
+    "VP of Marketing",
+    "CMO",
+    "Marketing Coordinator",
+    "Marketing Associate",
+    "Brand Strategist",
+    "Creative Director",
+    "Copywriter",
+    "Graphic Designer",
+    "Video Producer",
+    "Marketing Operations Manager",
+    "Field Marketing Manager",
+    "Partner Marketing Manager",
+    "Demand Generation Manager",
+    "Marketing Automation Specialist",
+    "Customer Marketing Manager",
+    "Event Marketing Manager",
+    "PR Manager",
+    "Communications Manager",
+    "Influencer Marketing Manager",
+    "Affiliate Marketing Manager",
+    "Marketing Data Analyst",
+    "Marketing Research Manager",
+    "Brand Ambassador",
   ],
   HR: [
-    "HR Specialist", "HR Manager", "Recruiter", "HR Business Partner",
-    "Talent Acquisition Specialist", "HR Generalist", "Compensation Analyst",
-    "Learning & Development Specialist", "HR Director", "Senior Recruiter",
-    "Technical Recruiter", "Executive Recruiter", "Talent Acquisition Manager",
-    "HR Operations Manager", "Benefits Administrator", "Payroll Specialist",
-    "Employee Relations Specialist", "Training Manager", "Organizational Development Manager",
-    "Diversity & Inclusion Manager", "HR Analytics Specialist", "Workplace Experience Manager",
-    "Chief People Officer", "VP of Human Resources", "HR Coordinator",
-    "Junior Recruiter", "Recruiting Coordinator", "HR Assistant", "Performance Management Specialist",
-    "Culture & Engagement Manager", "Total Rewards Manager", "HRIS Administrator",
-    "Labor Relations Specialist", "Safety & Compliance Manager", "Onboarding Specialist",
-    "Exit Interview Specialist", "HR Data Analyst", "Global Mobility Specialist"
+    "HR Specialist",
+    "HR Manager",
+    "Recruiter",
+    "HR Business Partner",
+    "Talent Acquisition Specialist",
+    "HR Generalist",
+    "Compensation Analyst",
+    "Learning & Development Specialist",
+    "HR Director",
+    "Senior Recruiter",
+    "Technical Recruiter",
+    "Executive Recruiter",
+    "Talent Acquisition Manager",
+    "HR Operations Manager",
+    "Benefits Administrator",
+    "Payroll Specialist",
+    "Employee Relations Specialist",
+    "Training Manager",
+    "Organizational Development Manager",
+    "Diversity & Inclusion Manager",
+    "HR Analytics Specialist",
+    "Workplace Experience Manager",
+    "Chief People Officer",
+    "VP of Human Resources",
+    "HR Coordinator",
+    "Junior Recruiter",
+    "Recruiting Coordinator",
+    "HR Assistant",
+    "Performance Management Specialist",
+    "Culture & Engagement Manager",
+    "Total Rewards Manager",
+    "HRIS Administrator",
+    "Labor Relations Specialist",
+    "Safety & Compliance Manager",
+    "Onboarding Specialist",
+    "Exit Interview Specialist",
+    "HR Data Analyst",
+    "Global Mobility Specialist",
   ],
   Sales: [
-    "Sales Representative", "Account Manager", "Sales Manager", "Business Development Manager",
-    "Inside Sales Representative", "Sales Director", "Customer Success Manager",
-    "Sales Operations Manager", "Enterprise Account Executive", "Senior Account Executive",
-    "Account Executive", "Sales Development Representative", "Lead Generation Specialist",
-    "Territory Manager", "Regional Sales Manager", "National Sales Manager",
-    "VP of Sales", "Chief Revenue Officer", "Sales Engineer", "Solutions Consultant",
-    "Customer Success Specialist", "Customer Onboarding Manager", "Renewal Manager",
-    "Expansion Manager", "Channel Partner Manager", "Alliance Manager",
-    "Sales Trainer", "Sales Enablement Manager", "Sales Analyst", "Revenue Operations Manager",
-    "Business Development Representative", "Outbound Sales Representative", "Inbound Sales Representative",
-    "Key Account Manager", "Strategic Account Manager", "Global Account Manager",
-    "Junior Sales Representative", "Sales Coordinator", "Sales Assistant"
+    "Sales Representative",
+    "Account Manager",
+    "Sales Manager",
+    "Business Development Manager",
+    "Inside Sales Representative",
+    "Sales Director",
+    "Customer Success Manager",
+    "Sales Operations Manager",
+    "Enterprise Account Executive",
+    "Senior Account Executive",
+    "Account Executive",
+    "Sales Development Representative",
+    "Lead Generation Specialist",
+    "Territory Manager",
+    "Regional Sales Manager",
+    "National Sales Manager",
+    "VP of Sales",
+    "Chief Revenue Officer",
+    "Sales Engineer",
+    "Solutions Consultant",
+    "Customer Success Specialist",
+    "Customer Onboarding Manager",
+    "Renewal Manager",
+    "Expansion Manager",
+    "Channel Partner Manager",
+    "Alliance Manager",
+    "Sales Trainer",
+    "Sales Enablement Manager",
+    "Sales Analyst",
+    "Revenue Operations Manager",
+    "Business Development Representative",
+    "Outbound Sales Representative",
+    "Inbound Sales Representative",
+    "Key Account Manager",
+    "Strategic Account Manager",
+    "Global Account Manager",
+    "Junior Sales Representative",
+    "Sales Coordinator",
+    "Sales Assistant",
   ],
   Finance: [
-    "Financial Analyst", "Accountant", "Finance Manager", "Controller",
-    "Financial Planning Analyst", "Treasury Analyst", "Tax Specialist",
-    "Audit Manager", "CFO", "Budget Analyst", "Senior Financial Analyst",
-    "Cost Accountant", "Staff Accountant", "Senior Accountant", "Accounts Payable Specialist",
-    "Accounts Receivable Specialist", "Payroll Accountant", "Tax Manager", "Treasury Manager",
-    "Finance Director", "VP of Finance", "Chief Financial Officer", "Investment Analyst",
-    "Risk Management Specialist", "Compliance Manager", "Internal Auditor", "External Auditor",
-    "Financial Controller", "Assistant Controller", "Finance Operations Manager",
-    "Procurement Manager", "Vendor Management Specialist", "Contract Manager",
-    "Financial Systems Analyst", "Business Intelligence Analyst", "FP&A Manager",
-    "Corporate Development Manager", "Investor Relations Manager", "Credit Analyst"
-  ]
+    "Financial Analyst",
+    "Accountant",
+    "Finance Manager",
+    "Controller",
+    "Financial Planning Analyst",
+    "Treasury Analyst",
+    "Tax Specialist",
+    "Audit Manager",
+    "CFO",
+    "Budget Analyst",
+    "Senior Financial Analyst",
+    "Cost Accountant",
+    "Staff Accountant",
+    "Senior Accountant",
+    "Accounts Payable Specialist",
+    "Accounts Receivable Specialist",
+    "Payroll Accountant",
+    "Tax Manager",
+    "Treasury Manager",
+    "Finance Director",
+    "VP of Finance",
+    "Chief Financial Officer",
+    "Investment Analyst",
+    "Risk Management Specialist",
+    "Compliance Manager",
+    "Internal Auditor",
+    "External Auditor",
+    "Financial Controller",
+    "Assistant Controller",
+    "Finance Operations Manager",
+    "Procurement Manager",
+    "Vendor Management Specialist",
+    "Contract Manager",
+    "Financial Systems Analyst",
+    "Business Intelligence Analyst",
+    "FP&A Manager",
+    "Corporate Development Manager",
+    "Investor Relations Manager",
+    "Credit Analyst",
+  ],
 };
 
 const locations = [
@@ -291,13 +430,16 @@ function simulateApiDelay(): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, delay));
 }
 
+import { httpClient } from "./httpClient";
+import { createAuthHeaderFromRequest } from "./serverAuth";
+
 export class EmployeeApiError extends Error {
-  constructor(
-    public status: number,
-    message: string
-  ) {
+  public readonly status: number;
+
+  constructor(message: string, status: number = 500) {
     super(message);
     this.name = "EmployeeApiError";
+    this.status = status;
   }
 }
 
@@ -307,14 +449,78 @@ export const employeeApi = {
    * @param department - The department to filter by
    * @param page - Page number (1-based)
    * @param limit - Number of items per page
+   * @param useMockData - Whether to use mock data (default: true in development)
    * @returns Promise with employee data
    */
   async getEmployeesByDepartment(
     department: string,
     page: number = 1,
+    limit: number = 1000,
+    useMockData: boolean = process.env.NODE_ENV === "development"
+  ): Promise<ApiResponse<Employee>> {
+    if (useMockData) {
+      return this._getMockEmployeesByDepartment(department, page, limit);
+    }
+
+    try {
+      // Check authentication before making request
+      if (!AuthService.isAuthenticated()) {
+        throw new EmployeeApiError(
+          401,
+          "Authentication required. Please login."
+        );
+      }
+
+      const response = await api.get<ApiResponse<Employee>>("/employees", {
+        department,
+        page,
+        limit,
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching employees:", error);
+
+      if (error instanceof AuthenticationError) {
+        throw new EmployeeApiError(error.status, error.message);
+      }
+
+      if (error instanceof Error) {
+        throw new EmployeeApiError(500, error.message);
+      }
+
+      throw new EmployeeApiError(
+        500,
+        "An unexpected error occurred while fetching employees."
+      );
+    }
+  },
+
+  /**
+   * Mock implementation for development
+   */
+  async _getMockEmployeesByDepartment(
+    department: string,
+    page: number = 1,
     limit: number = 1000
   ): Promise<ApiResponse<Employee>> {
     await simulateApiDelay();
+
+    // Simulate authentication check
+    const token = CookieManager.getAccessToken();
+    if (!token) {
+      throw new EmployeeApiError(
+        401,
+        "Access token is required. Please login."
+      );
+    }
+
+    if (CookieManager.isTokenExpired()) {
+      throw new EmployeeApiError(
+        401,
+        "Access token has expired. Please refresh your session."
+      );
+    }
 
     // Simulate API errors occasionally (5% chance)
     if (Math.random() < 0.05) {
@@ -346,21 +552,123 @@ export const employeeApi = {
 
   /**
    * Get list of available departments
+   * @param useMockData - Whether to use mock data (default: true in development)
    * @returns Promise with department list
    */
-  async getDepartments(): Promise<string[]> {
+  async getDepartments(
+    useMockData: boolean = process.env.NODE_ENV === "development"
+  ): Promise<string[]> {
+    if (useMockData) {
+      return this._getMockDepartments();
+    }
+
+    try {
+      // Check authentication before making request
+      if (!AuthService.isAuthenticated()) {
+        throw new EmployeeApiError(
+          401,
+          "Authentication required. Please login."
+        );
+      }
+
+      const response = await api.get<string[]>("/departments");
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching departments:", error);
+
+      if (error instanceof AuthenticationError) {
+        throw new EmployeeApiError(error.status, error.message);
+      }
+
+      if (error instanceof Error) {
+        throw new EmployeeApiError(500, error.message);
+      }
+
+      throw new EmployeeApiError(
+        500,
+        "An unexpected error occurred while fetching departments."
+      );
+    }
+  },
+
+  /**
+   * Mock implementation for development
+   */
+  async _getMockDepartments(): Promise<string[]> {
     await simulateApiDelay();
+
+    // Simulate authentication check
+    const token = CookieManager.getAccessToken();
+    if (!token) {
+      throw new EmployeeApiError(
+        401,
+        "Access token is required. Please login."
+      );
+    }
+
     return [...departments];
   },
 
   /**
    * Get department statistics
+   * @param useMockData - Whether to use mock data (default: true in development)
    * @returns Promise with department stats
    */
-  async getDepartmentStats(): Promise<
+  async getDepartmentStats(
+    useMockData: boolean = process.env.NODE_ENV === "development"
+  ): Promise<Record<string, { total: number; active: number }>> {
+    if (useMockData) {
+      return this._getMockDepartmentStats();
+    }
+
+    try {
+      // Check authentication before making request
+      if (!AuthService.isAuthenticated()) {
+        throw new EmployeeApiError(
+          401,
+          "Authentication required. Please login."
+        );
+      }
+
+      const response =
+        await api.get<Record<string, { total: number; active: number }>>(
+          "/departments/stats"
+        );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching department stats:", error);
+
+      if (error instanceof AuthenticationError) {
+        throw new EmployeeApiError(error.status, error.message);
+      }
+
+      if (error instanceof Error) {
+        throw new EmployeeApiError(500, error.message);
+      }
+
+      throw new EmployeeApiError(
+        500,
+        "An unexpected error occurred while fetching department statistics."
+      );
+    }
+  },
+
+  /**
+   * Mock implementation for development
+   */
+  async _getMockDepartmentStats(): Promise<
     Record<string, { total: number; active: number }>
   > {
     await simulateApiDelay();
+
+    // Simulate authentication check
+    const token = CookieManager.getAccessToken();
+    if (!token) {
+      throw new EmployeeApiError(
+        401,
+        "Access token is required. Please login."
+      );
+    }
 
     const stats: Record<string, { total: number; active: number }> = {};
 
@@ -373,6 +681,54 @@ export const employeeApi = {
     });
 
     return stats;
+  },
+
+  /**
+   * Create a demo access token for testing
+   */
+  async createDemoToken(): Promise<void> {
+    try {
+      await AuthService.mockLogin("demo@company.com", "demo123");
+      console.log("Demo access token created successfully");
+    } catch (error) {
+      console.error("Failed to create demo token:", error);
+    }
+  },
+
+  /**
+   * Clear authentication and logout
+   */
+  async logout(): Promise<void> {
+    await AuthService.logout();
+    console.log("Logged out successfully");
+  },
+
+  /**
+   * Check if user is authenticated
+   */
+  isAuthenticated(): boolean {
+    return AuthService.isAuthenticated();
+  },
+
+  /**
+   * Get current authentication status
+   */
+  getAuthStatus(): {
+    isAuthenticated: boolean;
+    token: string | null;
+    expiresAt: number | null;
+    timeUntilExpiry: number | null;
+  } {
+    const token = CookieManager.getAccessToken();
+    const expiresAt = CookieManager.getTokenExpiry();
+    const isAuthenticated = AuthService.isAuthenticated();
+
+    return {
+      isAuthenticated,
+      token,
+      expiresAt,
+      timeUntilExpiry: expiresAt ? expiresAt - Date.now() : null,
+    };
   },
 };
 

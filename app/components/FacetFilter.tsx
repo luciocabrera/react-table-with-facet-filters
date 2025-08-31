@@ -31,21 +31,27 @@ function VirtualizedCheckboxList({
   const { startIndex, endIndex, visibleItems, offsetY } = useMemo(() => {
     const containerHeight = height;
     const totalItems = items.length;
-    
+
     // Calculate how many items can fit in the visible area
     const visibleCount = Math.ceil(containerHeight / itemHeight);
-    
+
     // Add buffer items above and below for smooth scrolling
     const bufferSize = 5;
-    const startIdx = Math.max(0, Math.floor(scrollTop / itemHeight) - bufferSize);
-    const endIdx = Math.min(totalItems, startIdx + visibleCount + bufferSize * 2);
-    
+    const startIdx = Math.max(
+      0,
+      Math.floor(scrollTop / itemHeight) - bufferSize
+    );
+    const endIdx = Math.min(
+      totalItems,
+      startIdx + visibleCount + bufferSize * 2
+    );
+
     // Calculate the offset for the visible items container
     const offsetTop = startIdx * itemHeight;
-    
+
     // Get the visible items slice
     const visible = items.slice(startIdx, endIdx);
-    
+
     return {
       startIndex: startIdx,
       endIndex: endIdx,
@@ -77,12 +83,12 @@ function VirtualizedCheckboxList({
       onScroll={handleScroll}
     >
       {/* Total height container to maintain scrollbar size */}
-      <div style={{ height: totalHeight, position: 'relative' }}>
+      <div style={{ height: totalHeight, position: "relative" }}>
         {/* Visible items container */}
         <div
           style={{
             transform: `translateY(${offsetY}px)`,
-            position: 'absolute',
+            position: "absolute",
             top: 0,
             left: 0,
             right: 0,
@@ -150,15 +156,18 @@ export function FacetFilter({
     );
   }, [values, searchTerm]);
 
-  const handleCheckboxChange = useCallback((value: string, checked: boolean) => {
-    let newSelectedValues;
-    if (checked) {
-      newSelectedValues = [...selectedValues, value];
-    } else {
-      newSelectedValues = selectedValues.filter((v) => v !== value);
-    }
-    onFilterChange(column, newSelectedValues);
-  }, [selectedValues, onFilterChange, column]);
+  const handleCheckboxChange = useCallback(
+    (value: string, checked: boolean) => {
+      let newSelectedValues;
+      if (checked) {
+        newSelectedValues = [...selectedValues, value];
+      } else {
+        newSelectedValues = selectedValues.filter((v) => v !== value);
+      }
+      onFilterChange(column, newSelectedValues);
+    },
+    [selectedValues, onFilterChange, column]
+  );
 
   const handleSelectAll = useCallback(() => {
     onFilterChange(column, filteredValues);
@@ -240,17 +249,18 @@ export function FacetFilter({
           {/* Performance Info for large lists */}
           {shouldVirtualize && (
             <div className="mb-2 px-2 py-1 bg-blue-50 dark:bg-blue-900/20 rounded text-xs text-blue-600 dark:text-blue-400">
-              📊 Virtualized ({filteredValues.length} items) - Smooth scrolling enabled
+              📊 Virtualized ({filteredValues.length} items) - Smooth scrolling
+              enabled
             </div>
           )}
 
           {/* Checkbox List - Virtualized or Regular */}
           <div className="max-h-60">
-            {filteredValues.length === 0 ? (
+            {filteredValues.length === 0 ?
               <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">
                 No items match your search
               </div>
-            ) : shouldVirtualize ? (
+            : shouldVirtualize ?
               <VirtualizedCheckboxList
                 items={filteredValues}
                 selectedValues={selectedValues}
@@ -258,8 +268,7 @@ export function FacetFilter({
                 height={CONTAINER_HEIGHT}
                 itemHeight={ITEM_HEIGHT}
               />
-            ) : (
-              <div className="overflow-y-auto max-h-60">
+            : <div className="overflow-y-auto max-h-60">
                 <div className="space-y-1">
                   {filteredValues.map((value) => (
                     <label
@@ -282,7 +291,7 @@ export function FacetFilter({
                   ))}
                 </div>
               </div>
-            )}
+            }
           </div>
         </div>
       )}

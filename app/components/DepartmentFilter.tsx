@@ -1,5 +1,5 @@
 import { useSearchParams, useNavigate } from "react-router";
-import { departments } from "../services/employeeApi";
+import { departments } from "../services/serverEmployeeApi";
 
 interface DepartmentFilterProps {
   currentDepartment?: string;

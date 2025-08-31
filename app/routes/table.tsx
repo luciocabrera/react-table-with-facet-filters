@@ -3,16 +3,25 @@ import { useLoaderData, useSearchParams } from "react-router";
 import type { Route } from "./+types/table";
 import {
   FacetFilterTable,
+  AsyncFacetFilterTable,
+  SuspenseControls,
   DepartmentFilter,
   TableSkeleton,
   DepartmentFilterSkeleton,
 } from "../components";
+import { AuthDebugPanel } from "../components/AuthDebugPanel";
 import {
-  employeeApi,
+  ServerEmployeeApi,
+  ClientEmployeeApi,
   type Employee,
   type ApiResponse,
   EmployeeApiError,
-} from "../services/employeeApi";
+} from "../services/serverEmployeeApi";
+import {
+  isRequestAuthenticated,
+  getAccessTokenFromRequest,
+} from "../services/serverAuth";
+import "../utils/authTest";
 
 export function meta({ params }: Route.MetaArgs) {
   return [
@@ -30,9 +39,15 @@ export async function loader({ request }: Route.LoaderArgs) {
   const department = url.searchParams.get("department");
 
   try {
+    // Check if request is authenticated
+    const isAuthenticated = isRequestAuthenticated(request);
+    const token = getAccessTokenFromRequest(request);
+
+    console.log("🔐 Auth check:", { isAuthenticated, hasToken: !!token });
+
     // Load department stats for the filter component
     const [departmentStats] = await Promise.all([
-      employeeApi.getDepartmentStats(),
+      ServerEmployeeApi.getDepartmentStats(request),
     ]);
 
     // If no department selected, just return stats
@@ -45,12 +60,14 @@ export async function loader({ request }: Route.LoaderArgs) {
       };
     }
 
-    // Load employees for the selected department
-    const employeeResponse =
-      await employeeApi.getEmployeesByDepartment(department);
+    // Return the promise directly for Suspense to handle
+    const employeesPromise = ServerEmployeeApi.getEmployeesByDepartment(
+      department,
+      request
+    );
 
     return {
-      employees: employeeResponse,
+      employees: employeesPromise, // Return the promise, don't await
       department,
       departmentStats,
       error: null,
@@ -191,6 +208,8 @@ export default function TablePage() {
             </p>
           </div>
 
+          <AuthDebugPanel />
+
           <DepartmentFilter
             currentDepartment={department || undefined}
             departmentStats={departmentStats}
@@ -214,22 +233,24 @@ export default function TablePage() {
           </p>
         </div>
 
+        <AuthDebugPanel />
+
         <DepartmentFilter
           currentDepartment={department || undefined}
           departmentStats={departmentStats}
         />
 
-        {employees ?
-          <div>
-            <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-              <span className="font-semibold">{department}</span> Department -{" "}
-              {employees.total} employees
-            </div>
-            <FacetFilterTable data={employees.data} columns={columns} />
-          </div>
-        : department ?
-          <TableSkeleton />
-        : null}
+        <SuspenseControls department={department || undefined} />
+
+        {department && employees && (
+          <Suspense fallback={<TableSkeleton />}>
+            <AsyncFacetFilterTable
+              employeeDataPromise={employees}
+              department={department}
+              columns={columns}
+            />
+          </Suspense>
+        )}
       </div>
     </div>
   );
