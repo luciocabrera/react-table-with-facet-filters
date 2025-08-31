@@ -1,17 +1,17 @@
 import { Suspense } from "react";
 import { useLoaderData, useSearchParams } from "react-router";
 import type { Route } from "./+types/table";
-import { 
-  FacetFilterTable, 
-  DepartmentFilter, 
-  TableSkeleton, 
-  DepartmentFilterSkeleton 
+import {
+  FacetFilterTable,
+  DepartmentFilter,
+  TableSkeleton,
+  DepartmentFilterSkeleton,
 } from "../components";
-import { 
-  employeeApi, 
-  type Employee, 
-  type ApiResponse, 
-  EmployeeApiError 
+import {
+  employeeApi,
+  type Employee,
+  type ApiResponse,
+  EmployeeApiError,
 } from "../services/employeeApi";
 
 export function meta({ params }: Route.MetaArgs) {
@@ -19,14 +19,15 @@ export function meta({ params }: Route.MetaArgs) {
     { title: "Employee Data Table with Department Filters" },
     {
       name: "description",
-      content: "Browse employees by department with advanced filtering capabilities",
+      content:
+        "Browse employees by department with advanced filtering capabilities",
     },
   ];
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
-  const department = url.searchParams.get('department');
+  const department = url.searchParams.get("department");
 
   try {
     // Load department stats for the filter component
@@ -40,22 +41,23 @@ export async function loader({ request }: Route.LoaderArgs) {
         employees: null,
         department: null,
         departmentStats,
-        error: null
+        error: null,
       };
     }
 
     // Load employees for the selected department
-    const employeeResponse = await employeeApi.getEmployeesByDepartment(department);
+    const employeeResponse =
+      await employeeApi.getEmployeesByDepartment(department);
 
     return {
       employees: employeeResponse,
       department,
       departmentStats,
-      error: null
+      error: null,
     };
   } catch (error) {
-    console.error('Error loading employee data:', error);
-    
+    console.error("Error loading employee data:", error);
+
     if (error instanceof EmployeeApiError) {
       return {
         employees: null,
@@ -63,8 +65,8 @@ export async function loader({ request }: Route.LoaderArgs) {
         departmentStats: {},
         error: {
           message: error.message,
-          status: error.status
-        }
+          status: error.status,
+        },
       };
     }
 
@@ -73,9 +75,9 @@ export async function loader({ request }: Route.LoaderArgs) {
       department,
       departmentStats: {},
       error: {
-        message: 'An unexpected error occurred while loading employee data.',
-        status: 500
-      }
+        message: "An unexpected error occurred while loading employee data.",
+        status: 500,
+      },
     };
   }
 }
@@ -116,7 +118,7 @@ const columns = [
     key: "experience" as const,
     label: "Experience",
     filterable: true,
-    render: (value: number) => `${value} year${value !== 1 ? 's' : ''}`,
+    render: (value: number) => `${value} year${value !== 1 ? "s" : ""}`,
   },
   {
     key: "startDate" as const,
@@ -126,13 +128,27 @@ const columns = [
   },
 ];
 
-function ErrorDisplay({ error }: { error: { message: string; status: number } }) {
+function ErrorDisplay({
+  error,
+}: {
+  error: { message: string; status: number };
+}) {
   return (
     <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-6">
       <div className="flex">
         <div className="flex-shrink-0">
-          <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            className="h-5 w-5 text-red-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         </div>
         <div className="ml-3">
@@ -157,7 +173,8 @@ function ErrorDisplay({ error }: { error: { message: string; status: number } })
 }
 
 export default function TablePage() {
-  const { employees, department, departmentStats, error } = useLoaderData<typeof loader>();
+  const { employees, department, departmentStats, error } =
+    useLoaderData<typeof loader>();
   const [searchParams] = useSearchParams();
 
   if (error) {
@@ -169,7 +186,8 @@ export default function TablePage() {
               Employee Data Table
             </h1>
             <p className="text-gray-600 dark:text-gray-300">
-              Browse employees by department with advanced filtering capabilities.
+              Browse employees by department with advanced filtering
+              capabilities.
             </p>
           </div>
 
@@ -201,19 +219,17 @@ export default function TablePage() {
           departmentStats={departmentStats}
         />
 
-        {employees ? (
+        {employees ?
           <div>
             <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-              <span className="font-semibold">{department}</span> Department - {employees.total} employees
+              <span className="font-semibold">{department}</span> Department -{" "}
+              {employees.total} employees
             </div>
-            <FacetFilterTable 
-              data={employees.data} 
-              columns={columns} 
-            />
+            <FacetFilterTable data={employees.data} columns={columns} />
           </div>
-        ) : department ? (
+        : department ?
           <TableSkeleton />
-        ) : null}
+        : null}
       </div>
     </div>
   );
