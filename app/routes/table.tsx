@@ -1,120 +1,84 @@
-import { useState, useMemo } from "react";
+import { Suspense } from "react";
+import { useLoaderData, useSearchParams } from "react-router";
 import type { Route } from "./+types/table";
-import { FacetFilterTable } from "../components/FacetFilterTable";
+import { 
+  FacetFilterTable, 
+  DepartmentFilter, 
+  TableSkeleton, 
+  DepartmentFilterSkeleton 
+} from "../components";
+import { 
+  employeeApi, 
+  type Employee, 
+  type ApiResponse, 
+  EmployeeApiError 
+} from "../services/employeeApi";
 
-export function meta({}: Route.MetaArgs) {
+export function meta({ params }: Route.MetaArgs) {
   return [
-    { title: "Data Table with Facet Filters" },
+    { title: "Employee Data Table with Department Filters" },
     {
       name: "description",
-      content: "Interactive table with multi-select column filters",
+      content: "Browse employees by department with advanced filtering capabilities",
     },
   ];
 }
 
-// Sample data for demonstration
-const sampleData = [
-  {
-    id: 1,
-    name: "John Doe",
-    department: "Engineering",
-    role: "Senior Developer",
-    status: "Active",
-    location: "New York",
-    salary: 95000,
-    startDate: "2021-03-15",
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    department: "Marketing",
-    role: "Marketing Manager",
-    status: "Active",
-    location: "San Francisco",
-    salary: 85000,
-    startDate: "2020-08-22",
-  },
-  {
-    id: 3,
-    name: "Mike Johnson",
-    department: "Engineering",
-    role: "Frontend Developer",
-    status: "Inactive",
-    location: "Austin",
-    salary: 75000,
-    startDate: "2022-01-10",
-  },
-  {
-    id: 4,
-    name: "Sarah Wilson",
-    department: "HR",
-    role: "HR Specialist",
-    status: "Active",
-    location: "Chicago",
-    salary: 65000,
-    startDate: "2021-11-05",
-  },
-  {
-    id: 5,
-    name: "David Brown",
-    department: "Engineering",
-    role: "DevOps Engineer",
-    status: "Active",
-    location: "Seattle",
-    salary: 90000,
-    startDate: "2021-06-18",
-  },
-  {
-    id: 6,
-    name: "Emily Davis",
-    department: "Design",
-    role: "UX Designer",
-    status: "Active",
-    location: "Los Angeles",
-    salary: 80000,
-    startDate: "2022-04-12",
-  },
-  {
-    id: 7,
-    name: "Chris Miller",
-    department: "Sales",
-    role: "Sales Representative",
-    status: "Inactive",
-    location: "Miami",
-    salary: 55000,
-    startDate: "2020-12-03",
-  },
-  {
-    id: 8,
-    name: "Lisa Anderson",
-    department: "Marketing",
-    role: "Content Specialist",
-    status: "Active",
-    location: "Denver",
-    salary: 60000,
-    startDate: "2022-09-20",
-  },
-  {
-    id: 9,
-    name: "Tom Taylor",
-    department: "Engineering",
-    role: "Backend Developer",
-    status: "Active",
-    location: "Portland",
-    salary: 85000,
-    startDate: "2021-07-14",
-  },
-  {
-    id: 10,
-    name: "Anna White",
-    department: "Finance",
-    role: "Financial Analyst",
-    status: "Active",
-    location: "Boston",
-    salary: 70000,
-    startDate: "2022-02-28",
-  },
-];
+export async function loader({ request }: Route.LoaderArgs) {
+  const url = new URL(request.url);
+  const department = url.searchParams.get('department');
+
+  try {
+    // Load department stats for the filter component
+    const [departmentStats] = await Promise.all([
+      employeeApi.getDepartmentStats(),
+    ]);
+
+    // If no department selected, just return stats
+    if (!department) {
+      return {
+        employees: null,
+        department: null,
+        departmentStats,
+        error: null
+      };
+    }
+
+    // Load employees for the selected department
+    const employeeResponse = await employeeApi.getEmployeesByDepartment(department);
+
+    return {
+      employees: employeeResponse,
+      department,
+      departmentStats,
+      error: null
+    };
+  } catch (error) {
+    console.error('Error loading employee data:', error);
+    
+    if (error instanceof EmployeeApiError) {
+      return {
+        employees: null,
+        department,
+        departmentStats: {},
+        error: {
+          message: error.message,
+          status: error.status
+        }
+      };
+    }
+
+    return {
+      employees: null,
+      department,
+      departmentStats: {},
+      error: {
+        message: 'An unexpected error occurred while loading employee data.',
+        status: 500
+      }
+    };
+  }
+}
 
 const columns = [
   {
@@ -123,8 +87,8 @@ const columns = [
     filterable: true,
   },
   {
-    key: "department" as const,
-    label: "Department",
+    key: "email" as const,
+    label: "Email",
     filterable: true,
   },
   {
@@ -149,6 +113,12 @@ const columns = [
     render: (value: number) => `$${value.toLocaleString()}`,
   },
   {
+    key: "experience" as const,
+    label: "Experience",
+    filterable: true,
+    render: (value: number) => `${value} year${value !== 1 ? 's' : ''}`,
+  },
+  {
     key: "startDate" as const,
     label: "Start Date",
     filterable: false,
@@ -156,7 +126,64 @@ const columns = [
   },
 ];
 
+function ErrorDisplay({ error }: { error: { message: string; status: number } }) {
+  return (
+    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-6">
+      <div className="flex">
+        <div className="flex-shrink-0">
+          <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div className="ml-3">
+          <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
+            Error Loading Employee Data
+          </h3>
+          <div className="mt-1 text-sm text-red-700 dark:text-red-300">
+            {error.message}
+          </div>
+          <div className="mt-3">
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-red-100 dark:bg-red-800 hover:bg-red-200 dark:hover:bg-red-700 text-red-800 dark:text-red-200 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function TablePage() {
+  const { employees, department, departmentStats, error } = useLoaderData<typeof loader>();
+  const [searchParams] = useSearchParams();
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              Employee Data Table
+            </h1>
+            <p className="text-gray-600 dark:text-gray-300">
+              Browse employees by department with advanced filtering capabilities.
+            </p>
+          </div>
+
+          <DepartmentFilter
+            currentDepartment={department || undefined}
+            departmentStats={departmentStats}
+          />
+
+          <ErrorDisplay error={error} />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8">
       <div className="max-w-7xl mx-auto">
@@ -165,12 +192,28 @@ export default function TablePage() {
             Employee Data Table
           </h1>
           <p className="text-gray-600 dark:text-gray-300">
-            Use the filter buttons in column headers to filter data by multiple
-            values.
+            Browse employees by department with advanced filtering capabilities.
           </p>
         </div>
 
-        <FacetFilterTable data={sampleData} columns={columns} />
+        <DepartmentFilter
+          currentDepartment={department || undefined}
+          departmentStats={departmentStats}
+        />
+
+        {employees ? (
+          <div>
+            <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+              <span className="font-semibold">{department}</span> Department - {employees.total} employees
+            </div>
+            <FacetFilterTable 
+              data={employees.data} 
+              columns={columns} 
+            />
+          </div>
+        ) : department ? (
+          <TableSkeleton />
+        ) : null}
       </div>
     </div>
   );

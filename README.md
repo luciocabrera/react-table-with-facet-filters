@@ -44,7 +44,7 @@ Visit `http://localhost:5173` to see the application in action!
 ### Basic Example
 
 ```tsx
-import { FacetFilterTable, TableColumn } from './components';
+import { FacetFilterTable, TableColumn } from "./components";
 
 interface Employee {
   id: number;
@@ -55,24 +55,25 @@ interface Employee {
 }
 
 const columns: TableColumn<Employee>[] = [
-  { key: 'name', label: 'Name', filterable: true },
-  { key: 'department', label: 'Department', filterable: true },
-  { key: 'role', label: 'Role', filterable: true },
-  { key: 'status', label: 'Status', filterable: true },
+  { key: "name", label: "Name", filterable: true },
+  { key: "department", label: "Department", filterable: true },
+  { key: "role", label: "Role", filterable: true },
+  { key: "status", label: "Status", filterable: true },
 ];
 
 const data: Employee[] = [
-  { id: 1, name: 'John Doe', department: 'Engineering', role: 'Developer', status: 'Active' },
+  {
+    id: 1,
+    name: "John Doe",
+    department: "Engineering",
+    role: "Developer",
+    status: "Active",
+  },
   // ... more data
 ];
 
 export default function MyTable() {
-  return (
-    <FacetFilterTable 
-      data={data} 
-      columns={columns} 
-    />
-  );
+  return <FacetFilterTable data={data} columns={columns} />;
 }
 ```
 
@@ -81,16 +82,16 @@ export default function MyTable() {
 ```tsx
 const columns: TableColumn<Product>[] = [
   {
-    key: 'price',
-    label: 'Price',
+    key: "price",
+    label: "Price",
     filterable: false,
     render: (value: number) => `$${value.toFixed(2)}`,
   },
   {
-    key: 'inStock',
-    label: 'Stock Status',
+    key: "inStock",
+    label: "Stock Status",
     filterable: true,
-    render: (value: boolean) => value ? 'In Stock' : 'Out of Stock',
+    render: (value: boolean) => (value ? "In Stock" : "Out of Stock"),
   },
 ];
 ```
@@ -99,33 +100,36 @@ const columns: TableColumn<Product>[] = [
 
 ### FacetFilterTable Props
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| `data` | `T[]` | ✅ | Array of data objects to display |
-| `columns` | `TableColumn<T>[]` | ✅ | Column configuration array |
+| Prop      | Type               | Required | Description                      |
+| --------- | ------------------ | -------- | -------------------------------- |
+| `data`    | `T[]`              | ✅       | Array of data objects to display |
+| `columns` | `TableColumn<T>[]` | ✅       | Column configuration array       |
 
 ### TableColumn Interface
 
-| Property | Type | Required | Description |
-|----------|------|----------|-------------|
-| `key` | `keyof T` | ✅ | Data object property key |
-| `label` | `string` | ✅ | Column header display text |
-| `filterable` | `boolean` | ✅ | Whether column supports filtering |
-| `render` | `(value: any) => string \| React.ReactNode` | ❌ | Custom cell renderer |
+| Property     | Type                                        | Required | Description                       |
+| ------------ | ------------------------------------------- | -------- | --------------------------------- |
+| `key`        | `keyof T`                                   | ✅       | Data object property key          |
+| `label`      | `string`                                    | ✅       | Column header display text        |
+| `filterable` | `boolean`                                   | ✅       | Whether column supports filtering |
+| `render`     | `(value: any) => string \| React.ReactNode` | ❌       | Custom cell renderer              |
 
 ## 🎨 Filter Features
 
 ### Multi-Select Filtering
+
 - Click the filter icon (�) in any filterable column header
 - Select/deselect multiple values using checkboxes
 - See immediate results as you make selections
 
 ### Search within Filters
+
 - Use the search box within each filter popover
 - Quickly find specific values in large filter lists
 - Real-time filtering of available options
 
 ### Filter Management
+
 - **Select All**: Quickly select all available filter options
 - **Clear All**: Remove all selections for a specific filter
 - **Global Clear**: Clear all filters across all columns
@@ -136,11 +140,13 @@ const columns: TableColumn<Product>[] = [
 The repository includes two demo pages showcasing different use cases:
 
 ### 1. Employee Data Table (`/table`)
+
 - **Data**: Employee records with departments, roles, and status
 - **Features**: Filter by department, role, status, and location
 - **Use Case**: HR management and employee directory
 
 ### 2. Product Categories (`/welcome/categories`)
+
 - **Data**: Product catalog with categories, brands, and pricing
 - **Features**: Filter by category, subcategory, brand, and stock status
 - **Use Case**: E-commerce product management
@@ -163,6 +169,7 @@ The component is built with Tailwind CSS and supports:
 - **Consistent Spacing**: Standardized padding and margins
 
 ### Dark Mode
+
 ```css
 /* Automatic dark mode support */
 .dark .table-component {
