@@ -128,13 +128,89 @@ export function FacetFilter({
   searchTerm,
   onSearchChange,
 }: FacetFilterProps) {
-  const [isOpen, setIsOpen] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+  const [showAbove, setShowAbove] = useState(false);
+
+  // Calculate optimal positioning
+  const calculatePosition = useCallback(() => {
+    if (!buttonRef.current) return;
+
+    const buttonRect = buttonRef.current.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    // Use the button's position relative to the viewport directly
+    let top = buttonRect.bottom + 4;
+    let left = buttonRect.left;
+    let above = false;
+
+    // If popover is already rendered, use its actual height
+    if (popoverRef.current) {
+      const popoverHeight = popoverRef.current.offsetHeight;
+
+      // Check if we need to show above the button
+      if (
+        buttonRect.bottom + popoverHeight > viewportHeight &&
+        buttonRect.top > popoverHeight
+      ) {
+        top = buttonRect.top - popoverHeight - 4;
+        above = true;
+      }
+    } else {
+      // Fallback: estimate height for initial positioning
+      const baseHeight = 120; // Search input + buttons + padding
+      const itemCount = Math.min(values.length, 8); // Max 8 visible items before scrolling
+      const itemHeight = 32;
+      const estimatedHeight = baseHeight + itemCount * itemHeight;
+      const maxHeight = Math.min(estimatedHeight, 400);
+
+      // Check if we need to show above the button
+      if (
+        buttonRect.bottom + maxHeight > viewportHeight &&
+        buttonRect.top > maxHeight
+      ) {
+        top = buttonRect.top - maxHeight - 4;
+        above = true;
+      }
+    }
+
+    // Adjust if popover would go off the right edge
+    if (left + 320 > viewportWidth) {
+      // 320px is popover width
+      left = Math.max(8, viewportWidth - 320 - 8);
+    }
+
+    setPosition({ top, left });
+    setShowAbove(above);
+  }, [values.length]);
+
+  // Handle popover toggle
+  const handleToggle = useCallback(() => {
+    if (isOpen) {
+      setIsOpen(false);
+    } else {
+      calculatePosition();
+      setIsOpen(true);
+      // Focus search input after opening
+      setTimeout(() => {
+        const searchInput = popoverRef.current?.querySelector(
+          'input[type="text"]'
+        ) as HTMLInputElement;
+        if (searchInput) {
+          searchInput.focus();
+        }
+      }, 0);
+    }
+  }, [isOpen, calculatePosition]);
 
   // Close popover when clicking outside
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
+    if (!isOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
       if (
         popoverRef.current &&
         !popoverRef.current.contains(event.target as Node) &&
@@ -143,11 +219,50 @@ export function FacetFilter({
       ) {
         setIsOpen(false);
       }
-    }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
+    };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isOpen]);
+
+  // Recalculate position on scroll/resize
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleScrollOrResize = () => {
+      calculatePosition();
+    };
+
+    window.addEventListener("scroll", handleScrollOrResize, true);
+    window.addEventListener("resize", handleScrollOrResize);
+
+    return () => {
+      window.removeEventListener("scroll", handleScrollOrResize, true);
+      window.removeEventListener("resize", handleScrollOrResize);
+    };
+  }, [isOpen, calculatePosition]);
+
+  // Recalculate position after dropdown renders to use actual height
+  useEffect(() => {
+    if (isOpen && popoverRef.current) {
+      // Small delay to ensure content is fully rendered
+      const timer = setTimeout(() => {
+        calculatePosition();
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, calculatePosition]);
 
   // Memoize filtered values for performance
   const filteredValues = useMemo(() => {
@@ -186,13 +301,15 @@ export function FacetFilter({
     <div className="relative">
       <button
         ref={buttonRef}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleToggle}
         className={`p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 ${
           selectedValues.length > 0 ?
             "text-blue-600 dark:text-blue-400"
           : "text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
         }`}
         title={`Filter ${column}`}
+        aria-expanded={isOpen}
+        aria-haspopup="dialog"
       >
         <svg
           className="w-4 h-4"
@@ -217,7 +334,14 @@ export function FacetFilter({
       {isOpen && (
         <div
           ref={popoverRef}
-          className="absolute top-8 left-0 z-50 w-80 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg p-4"
+          className={`fixed w-80 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-xl p-4 z-[9999] ${
+            showAbove ? "origin-bottom" : "origin-top"
+          }`}
+          style={{
+            top: position.top,
+            left: position.left,
+            maxHeight: "400px",
+          }}
         >
           {/* Search Input */}
           <div className="mb-3">
@@ -254,7 +378,7 @@ export function FacetFilter({
             </div>
           )}
 
-          {/* Checkbox List - Virtualized or Regular */}
+          {/* Checkbox List */}
           <div className="max-h-60">
             {filteredValues.length === 0 ?
               <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">
